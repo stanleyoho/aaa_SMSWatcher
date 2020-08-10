@@ -1,4 +1,4 @@
-package com.stanley.test.smswatcher.smsObserverLib;
+package com.playplus.app.smswatcher.smsObserverLib;
 
 /**
  * 短信接收器回调接口

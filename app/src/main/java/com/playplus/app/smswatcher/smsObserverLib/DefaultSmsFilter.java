@@ -9,7 +9,7 @@
  * 修改内容:  <修改内容>
  */
 
-package com.stanley.test.smswatcher.smsObserverLib;
+package com.playplus.app.smswatcher.smsObserverLib;
 
 /**
  * 默认的短信过滤器

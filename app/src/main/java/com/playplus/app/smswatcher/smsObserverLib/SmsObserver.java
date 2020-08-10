@@ -1,17 +1,14 @@
-package com.stanley.test.smswatcher.smsObserverLib;
+package com.playplus.app.smswatcher.smsObserverLib;
 
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
-import com.stanley.test.smswatcher.KeyWordPreference;
-import com.stanley.test.smswatcher.NotificationUtil;
-
-import java.lang.reflect.Array;
+import com.playplus.app.smswatcher.KeyWordPreference;
+import com.playplus.app.smswatcher.NotificationUtil;
 
 /***
  * 短信接收观察者

@@ -1,4 +1,4 @@
-package com.stanley.test.smswatcher
+package com.playplus.app.smswatcher
 
 import android.Manifest
 import android.content.Context
@@ -11,15 +11,15 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.blankj.utilcode.constant.PermissionConstants
 import com.karumi.dexter.Dexter
+import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionDeniedResponse
-import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.single.PermissionListener
-import com.stanley.test.smswatcher.smsObserverLib.SmsObserver
-import com.stanley.test.smswatcher.smsObserverLib.SmsResponseCallback
-import com.stanley.test.smswatcher.smsObserverLib.VerificationCodeSmsFilter
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.playplus.app.smswatcher.smsObserverLib.SmsObserver
+import com.playplus.app.smswatcher.smsObserverLib.SmsResponseCallback
+import com.playplus.app.smswatcher.smsObserverLib.VerificationCodeSmsFilter
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_key.view.*
 
@@ -42,15 +42,19 @@ class MainActivity : AppCompatActivity() , SmsResponseCallback {
 
         smsObserver = SmsObserver(this, this, VerificationCodeSmsFilter("180"))
         smsObserver?.registerSMSObserver()
+        PermissionConstants.PHONE
         Dexter.withActivity(this)
-            .withPermission(Manifest.permission.READ_SMS)
-            .withListener(object : PermissionListener {
-                override fun onPermissionGranted(response: PermissionGrantedResponse?) { /* ... */ }
+            .withPermissions(Manifest.permission.READ_SMS,Manifest.permission.READ_PHONE_STATE)
+            .withListener(object : MultiplePermissionsListener {
+                override fun onPermissionRationaleShouldBeShown(
+                    permissions: MutableList<PermissionRequest>?,
+                    token: PermissionToken?) {/* ... */ }
 
-                override fun onPermissionDenied(response: PermissionDeniedResponse?) { /* ... */ }
-
-                override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest?, token: PermissionToken?) { /* ... */ }
+                override fun onPermissionsChecked(report: MultiplePermissionsReport?) {/* ... */ }
             }).check()
+
+        MyPhoneUtils.logAll()
+        MyDeviceUtils.logAll()
     }
 
     override fun onResume() {

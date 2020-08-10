@@ -1,4 +1,4 @@
-package com.stanley.test.smswatcher.smsObserverLib;
+package com.playplus.app.smswatcher.smsObserverLib;
 
 import android.os.Handler;
 import android.os.Message;

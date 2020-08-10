@@ -3,6 +3,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('/Users/stanleylin/Desktop/SMSWatcher/app/smswatcher_debug.jks')
+            storePassword 'smswatcher_debug'
+            keyAlias 'smswatcher_debug'
+            keyPassword 'smswatcher_debug'
+        }
+    }
     compileSdkVersion 29
 
     defaultConfig {
@@ -35,4 +43,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation "androidx.recyclerview:recyclerview:1.1.0"
     implementation 'com.karumi:dexter:5.0.0'
+    implementation 'com.blankj:utilcode:1.29.0'
 }

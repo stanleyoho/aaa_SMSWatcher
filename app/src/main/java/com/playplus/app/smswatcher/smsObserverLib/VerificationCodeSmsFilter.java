@@ -9,7 +9,7 @@
  * 修改内容:  <修改内容>
  */
 
-package com.stanley.test.smswatcher.smsObserverLib;
+package com.playplus.app.smswatcher.smsObserverLib;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
