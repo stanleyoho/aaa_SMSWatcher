@@ -75,6 +75,7 @@
         app:layout_constraintStart_toStartOf="@+id/list_permission"
         app:layout_constraintEnd_toEndOf="@+id/list_permission"
         android:layout_marginBottom="15dp"
+        android:visibility="gone"
         android:text="Register"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

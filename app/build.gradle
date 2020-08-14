@@ -14,7 +14,7 @@ android {
     compileSdkVersion 29
 
     defaultConfig {
-        applicationId "com.stanley.test.smswatcher"
+        applicationId "com.playplus.app.smswatcher"
         minSdkVersion 23
         targetSdkVersion 29
         versionCode 1
@@ -24,10 +24,32 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    android.applicationVariants.all {
+        variant ->
+            def VERSION = ""
+            if (variant.getName().contains("debug")) {
+                VERSION = "DEV"
+            } else if (variant.getName().contains("release")) {
+                VERSION = "PRD"
+            }
+
+            variant.buildConfigField "String", "VERSION", "\"${VERSION}\""
+
+            variant.outputs.all {
+                //这里修改apk文件名
+                outputFileName = "SMSWatcher_${VERSION}-v${variant.versionName}.apk"
+            }
     }
 }
 

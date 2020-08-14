@@ -1,7 +1,11 @@
 package com.playplus.app.smswatcher
 
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -13,13 +17,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.blankj.utilcode.constant.PermissionConstants
-import com.blankj.utilcode.util.PermissionUtils
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.playplus.app.smswatcher.smsObserverLib.SmsObserver
 import com.playplus.app.smswatcher.smsObserverLib.SmsResponseCallback
 import com.playplus.app.smswatcher.smsObserverLib.VerificationCodeSmsFilter
@@ -35,9 +32,14 @@ class MainActivity : AppCompatActivity() , SmsResponseCallback {
     private lateinit var listPermissions : RecyclerView
     private lateinit var btnRegister : Button
     private var smsObserver: SmsObserver? = null
-    private val permissions = arrayListOf<String>(
-        PermissionConstants.SMS,
-        PermissionConstants.PHONE)
+    private val permissionRequestCode = 1001
+    private var isPermissionCheckPass = false
+    val permissionData = MyPermissionUtil.getPermissionArray(
+        android.Manifest.permission.RECEIVE_SMS,
+        android.Manifest.permission.READ_SMS,
+        android.Manifest.permission.SEND_SMS,
+        android.Manifest.permission.READ_PHONE_STATE
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,133 +54,183 @@ class MainActivity : AppCompatActivity() , SmsResponseCallback {
 
         smsObserver = SmsObserver(this, this, VerificationCodeSmsFilter("180"))
         smsObserver?.registerSMSObserver()
+        askPermission()
     }
 
     override fun onResume() {
         super.onResume()
         listPermissions.layoutManager = LinearLayoutManager(this@MainActivity)
-        askPermission()
+        updateRecycler()
+        if(isAllPermissionsPass()){
+            showRegister(true)
+        }else{
+            showRegister(false)
+        }
     }
 
     private fun askPermission() {
-        var isPermissionPass = true
-        val permissionData = ArrayList<PermissionModel>()
 
-        for (item in permissions) {
-            val isPass = PermissionUtils.isGranted(item)
-            permissionData.add(PermissionModel(item,isPass))
-            if (!isPass) {
-                isPermissionPass = false
+        val deniedArray = MyPermissionUtil.getPermissionDeniedArray(this@MainActivity,permissionData)
+
+        if(deniedArray.isNotEmpty()){
+            //get permissions
+            MyPermissionUtil.askPermission(this@MainActivity,deniedArray,permissionRequestCode)
+            Log.d("askPermission","ask")
+        }else{
+            nextAction()
+        }
+    }
+
+    fun isAllPermissionsPass():Boolean{
+        var isAllPass = true
+        for(item in permissionData){
+            if(checkSelfPermission(item) == PackageManager.PERMISSION_DENIED){
+                isAllPass = false
             }
         }
-        updateRecycler(permissionData)
 
-        if(!isPermissionPass){
-            PermissionUtils.permission(PermissionConstants.SMS, PermissionConstants.PHONE)
-                .callback(object : PermissionUtils.FullCallback{
-                    override fun onGranted(granted: MutableList<String>) {
-                        if(granted.size <2){
-                            askPermission()
-                        }
-                        (listPermissions.adapter as KeyWordAdapter).updateGrantPermission(granted)
-                    }
-
-                    override fun onDenied(
-                        deniedForever: MutableList<String>,
-                        denied: MutableList<String>
-                    ) {
-                        if(denied.size>0){
-                            askPermission()
-                        }
-                        (listPermissions.adapter as KeyWordAdapter).updateDeniedPermission(denied)
-                    }
-                })
-                .request()
-        }
+        return isAllPass
     }
 
-    fun updateRecycler(data:ArrayList<PermissionModel>){
+    fun nextAction(){
+        showRegister(true)
+    }
+
+    fun showRegister(isShow:Boolean){
+        if (isShow){
+            btnRegister.visibility = View.VISIBLE
+        }else{
+            btnRegister.visibility = View.GONE
+        }
+
+    }
+
+    private fun updateRecycler(){
         val adapter = listPermissions.adapter as KeyWordAdapter?
         if(adapter == null){
-            listPermissions.adapter = KeyWordAdapter(this@MainActivity,data)
+            listPermissions.adapter = KeyWordAdapter(this@MainActivity,callback)
         }else{
-            adapter.updateKeyWords(data)
+            adapter.updateGrantPermission()
         }
     }
 
-    data class PermissionModel(
-        val permissionName : String,
-        var isPass : Boolean
-    )
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if(requestCode == permissionRequestCode){
+            var isNeedShowAgain = false
+            for(element in permissions){
+                if(shouldShowRequestPermissionRationale(element)) {
+                    isNeedShowAgain = true
+                }
+            }
 
-    class KeyWordAdapter(private val context: Context,private var permissionList : ArrayList<PermissionModel>):RecyclerView.Adapter<RecyclerView.ViewHolder>(){
+            //check is permission pass
+            if(isNeedShowAgain){
+                askPermission()
+            }
+
+            updateRecycler()
+        }
+    }
+
+    private val callback = object : KeyWordAdapter.Callback{
+        override fun onCheckPass() {
+            isPermissionCheckPass = true
+            showRegister(true)
+            nextAction()
+        }
+
+        override fun onCheckFail() {
+            isPermissionCheckPass = false
+            showRegister(false)
+        }
+    }
+
+    class KeyWordAdapter(private val context: Context,val callback : Callback):RecyclerView.Adapter<RecyclerView.ViewHolder>(){
+
+        private val permissionsArray = arrayOf("SMS","PHONE")
+        var phoneCheck = false
+        var smsCheck = false
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            return KeyVH(LayoutInflater.from(context).inflate(R.layout.item_key,parent,false))
+            return PermissionVH(context,LayoutInflater.from(context).inflate(R.layout.item_key,parent,false))
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            if(holder is KeyVH){
-                val item = permissionList[position]
-                if(item.isPass){
-                    holder.textIcon.text = "V"
-                    holder.textIcon.setTextColor(context.resources.getColor(android.R.color.holo_green_light))
-                }else{
-                    holder.textIcon.text = "X"
-                    holder.textIcon.setTextColor(context.resources.getColor(android.R.color.holo_red_light))
-                }
+            if(holder is PermissionVH){
+                val permissionResult = checkPermission(permissionsArray[position])
 
-                when(item.permissionName){
-                    PermissionConstants.PHONE ->{
-                        holder.textPermission.text = "取得手機權限"
-                    }
-                    PermissionConstants.SMS ->{
-                        holder.textPermission.text = "取得簡訊權限"
-                    }
+                if(permissionResult){
+                    holder.setPassStyle()
+                }else{
+                    holder.setFailStyle()
+                }
+                when(position){
+                    0->{ holder.textPermission.text = "取得簡訊權限" }
+                    1->{ holder.textPermission.text = "取得手機號碼權限" }
                 }
             }
         }
 
         override fun getItemCount(): Int {
-            return this.permissionList.size
+            return this.permissionsArray.size
         }
 
-        fun updateKeyWords(permissions : ArrayList<PermissionModel>){
-            this.permissionList = permissions
+        fun updateGrantPermission(){
             notifyDataSetChanged()
         }
 
-        fun updateGrantPermission(grantList:MutableList<String>){
-            if(grantList.size == 0) return
-            for(item in permissionList){
-                for(item2 in grantList){
-                    if(item2.contains("SMS")&&item.permissionName.contains("SMS")){
-                        item.isPass = true
-                    }else if(item2.contains("PHONE")&&item.permissionName.contains("PHONE")){
-                        item.isPass = true
-                    }
+        private fun checkPermission(type:String):Boolean{
+            var result = false
+            when(type){
+                "SMS"->{
+                    val permissionResult = context.checkSelfPermission(android.Manifest.permission.READ_SMS)
+                    result = permissionResult == PackageManager.PERMISSION_GRANTED
+                    smsCheck = permissionResult == PackageManager.PERMISSION_GRANTED
+                }
+                "PHONE"->{
+                    val permissionResult = context.checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE)
+                    result = permissionResult == PackageManager.PERMISSION_GRANTED
+                    phoneCheck = permissionResult == PackageManager.PERMISSION_GRANTED
                 }
             }
-            notifyDataSetChanged()
-        }
-
-        fun updateDeniedPermission(deniedList:MutableList<String>){
-            if(deniedList.size == 0) return
-            for(item in permissionList){
-                for(item2 in deniedList){
-                    if(item2.contains("SMS")&&item.permissionName.contains("SMS")){
-                        item.isPass = false
-                    }else if(item2.contains("PHONE")&&item.permissionName.contains("PHONE")){
-                        item.isPass = false
-                    }
-                }
+            if(smsCheck && phoneCheck) {
+                callback.onCheckPass()
+            }else{
+                callback.onCheckFail()
             }
-            notifyDataSetChanged()
+
+            return result
         }
 
-        class KeyVH(itemView: View):RecyclerView.ViewHolder(itemView){
+        interface Callback{
+            fun onCheckPass()
+            fun onCheckFail()
+        }
+
+        class PermissionVH(private val context:Context, itemView: View):RecyclerView.ViewHolder(itemView){
             var textIcon:TextView = itemView.textIcon
             var textPermission: TextView = itemView.textPermission
+            var btnSetting: Button = itemView.btn_setting
+
+            fun setPassStyle(){
+                textIcon.text = "V"
+                textIcon.setTextColor(context.resources.getColor(android.R.color.holo_green_light))
+                btnSetting.visibility = View.GONE
+            }
+
+            fun setFailStyle(){
+                textIcon.text = "X"
+                textIcon.setTextColor(context.resources.getColor(android.R.color.holo_red_light))
+                btnSetting.visibility = View.VISIBLE
+                btnSetting.setOnClickListener {
+                    val intent = Intent()
+                    intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    val uri: Uri = Uri.fromParts("package", context.packageName, null)
+                    intent.data = uri
+                    context.startActivity(intent)
+                    Log.d("123","123")
+                }
+            }
         }
     }
 

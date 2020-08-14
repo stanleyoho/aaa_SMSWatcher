@@ -1,6 +1,5 @@
 package com.playplus.app.smswatcher
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
@@ -8,14 +7,10 @@ import androidx.core.app.ActivityCompat
 
 object MyPermissionUtil {
 
-    const val PERMISSIION_EXTERNAAL_SMS_READ = Manifest.permission.READ_SMS
-    const val PERMISSIION_EXTERNAAL_SMS_SEND = Manifest.permission.SEND_SMS
-    const val PERMISSIION_EXTERNAAL_SMS_RECEIVE = Manifest.permission.RECEIVE_SMS
-
     fun getPermissionArray(vararg permissions : String) : Array<String>{
         val permissionList = ArrayList<String>()
-        for(i in 0 until permissions.size){
-            permissionList.add(permissions[i])
+        for(element in permissions){
+            permissionList.add(element)
         }
         return permissionList.toTypedArray()
     }
