@@ -15,6 +15,7 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.playplus.app.smswatcher.smsObserverLib.SmsObserver
@@ -23,7 +24,7 @@ import com.playplus.app.smswatcher.smsObserverLib.VerificationCodeSmsFilter
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_key.view.*
 
-class MainActivity : AppCompatActivity() , SmsResponseCallback {
+class MainActivity : AppCompatActivity()  {
 
     private lateinit var textWatcherPreference : KeyWordPreference
     private lateinit var layoutParent : ConstraintLayout
@@ -52,9 +53,12 @@ class MainActivity : AppCompatActivity() , SmsResponseCallback {
         listPermissions = list_permission
         btnRegister = btn_register
 
-        smsObserver = SmsObserver(this, this, VerificationCodeSmsFilter("180"))
-        smsObserver?.registerSMSObserver()
+//        smsObserver = SmsObserver(this, this, VerificationCodeSmsFilter("180"))
+//        smsObserver?.registerSMSObserver()
         askPermission()
+        val intent = Intent(this@MainActivity,MySMSService::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startService(intent)
     }
 
     override fun onResume() {
@@ -232,9 +236,5 @@ class MainActivity : AppCompatActivity() , SmsResponseCallback {
                 }
             }
         }
-    }
-
-    override fun onCallbackSmsContent(smsContent: String?) {
-        Log.d("1234",smsContent?:"")
     }
 }
