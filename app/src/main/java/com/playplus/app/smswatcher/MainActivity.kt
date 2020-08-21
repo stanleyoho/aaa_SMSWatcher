@@ -5,7 +5,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
+import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -13,28 +16,35 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.playplus.app.smswatcher.net.NetManager
+import com.playplus.app.smswatcher.net.ResponseModels
 import com.playplus.app.smswatcher.smsObserverLib.SmsObserver
 import com.playplus.app.smswatcher.smsObserverLib.SmsResponseCallback
 import com.playplus.app.smswatcher.smsObserverLib.VerificationCodeSmsFilter
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_key.view.*
+import java.util.*
 
-class MainActivity : AppCompatActivity()  {
+class MainActivity : AppCompatActivity() ,SmsResponseCallback {
 
     private lateinit var textWatcherPreference : KeyWordPreference
     private lateinit var layoutParent : ConstraintLayout
-    private lateinit var editDevice : EditText
+    private lateinit var textDevice : TextView
     private lateinit var editPhoneNumber : EditText
     private lateinit var listPermissions : RecyclerView
     private lateinit var btnRegister : Button
-    private var smsObserver: SmsObserver? = null
+    private var loadingDialog : LoadingDialog? = null
     private val permissionRequestCode = 1001
     private var isPermissionCheckPass = false
+    private var smsObserver: SmsObserver? = null
+    private var isDeviceRegistered = false
     val permissionData = MyPermissionUtil.getPermissionArray(
         android.Manifest.permission.RECEIVE_SMS,
         android.Manifest.permission.READ_SMS,
@@ -46,30 +56,174 @@ class MainActivity : AppCompatActivity()  {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        layoutParent = layout_parent
         textWatcherPreference = KeyWordPreference(this@MainActivity)
-        editDevice = edit_device_name
+        loadingDialog = LoadingDialog(this@MainActivity)
+        layoutParent = layout_parent
+        textDevice = edit_device_name
         editPhoneNumber = edit_phone_number
         listPermissions = list_permission
         btnRegister = btn_register
 
-//        smsObserver = SmsObserver(this, this, VerificationCodeSmsFilter("180"))
-//        smsObserver?.registerSMSObserver()
-        askPermission()
-        val intent = Intent(this@MainActivity,MySMSService::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startService(intent)
+        btnRegister.setOnClickListener(object : View.OnClickListener{
+            override fun onClick(p0: View?) {
+                if(checkIsInputCorrect()) {
+                    getToken()
+                }else{
+                    showToast("輸入錯誤")
+                }
+            }
+        })
+
+        isPermissionCheckPass = isAllPermissionsPass()
+        isDeviceRegistered = checkIsDeviceRegistered()
+
+        //init
+        textDevice.text = "${MyDeviceUtils.getManufacturer()}_${MyDeviceUtils.getModel()}"
+//        editPhoneNumber.setText("0911571591")
+        listPermissions.layoutManager = LinearLayoutManager(this@MainActivity)
     }
 
     override fun onResume() {
         super.onResume()
-        listPermissions.layoutManager = LinearLayoutManager(this@MainActivity)
+        askPermission()
         updateRecycler()
         if(isAllPermissionsPass()){
             showRegister(true)
         }else{
             showRegister(false)
         }
+
+        if(isPermissionCheckPass && isDeviceRegistered){
+            startSMSListener()
+        }else{
+            stopSMSListener()
+        }
+
+        if(checkIsDeviceRegistered()){
+            showRegisteredView()
+        }else{
+            showUnRegisteredView()
+        }
+    }
+
+    override fun onDestroy() {
+        stopSMSListener()
+        super.onDestroy()
+    }
+
+    private fun checkIsInputCorrect():Boolean{
+        var checkResult = false
+        checkResult = when{
+            textDevice.text.isEmpty()->{
+                false
+            }
+
+            !editPhoneNumber.text.startsWith("09")->{
+                false
+            }
+            editPhoneNumber.text.toString().length != 10 ->{
+                false
+            }
+            else->{
+                true
+            }
+        }
+        return checkResult
+    }
+
+    fun getToken(){
+        loadingDialog?.show()
+        NetManager.getToken(object : ApiCallBackInterface{
+            override fun onSuccess(tag: Int, responseString: String?) {
+                if (responseString == null ){
+                    loadingDialog?.dismiss()
+                    showToast("getToken message null")
+                }else{
+                    val responseModel = Gson().fromJson<ResponseModels.GetTokenResponseModel>(responseString,ResponseModels.GetTokenResponseModel::class.java)
+                    if(responseModel.status){
+                        textWatcherPreference.setToken(responseModel.token)
+                        registerDevice(
+                            textWatcherPreference.getToken(),
+                            textDevice.text.toString(),
+                            MyDeviceUtils.getUUID(),
+                            editPhoneNumber.text.toString())
+                    }else{
+                        loadingDialog?.dismiss()
+                        showToast("set token fail")
+                    }
+                }
+            }
+
+            override fun onFail(tag: Int, errorMessage: String?) {
+                loadingDialog?.dismiss()
+                showToast(errorMessage?:"getToken fail")
+            }
+        })
+    }
+
+    fun registerDevice(token:String,device:String,uid:String,phone:String){
+        NetManager.registerDevice(token,device,uid,phone,object : ApiCallBackInterface{
+            override fun onSuccess(tag: Int, responseString: String?) {
+                if (responseString == null ){
+                    loadingDialog?.dismiss()
+                    showToast("registerDevice message null")
+                }else{
+                    val responseModel = Gson().fromJson<ResponseModels.GetDeviceRegisterResponseModel>(responseString,
+                        ResponseModels.GetDeviceRegisterResponseModel::class.java)
+                    if(responseModel.status){
+                        responseModel.data?.let {
+                            textWatcherPreference.setID(it.id)
+                            textWatcherPreference.setUID(it.uid)
+                            textWatcherPreference.setPhone(editPhoneNumber.text.toString())
+                            isDeviceRegistered = true
+                            loadingDialog?.dismiss()
+                            showToast("裝置註冊成功")
+                            showRegisteredView()
+                            startSMSListener()
+                        }
+                    }else{
+                        loadingDialog?.dismiss()
+                        showToast("registerDevice fail")
+                    }
+                }
+            }
+
+            override fun onFail(tag: Int, errorMessage: String?) {
+                loadingDialog?.dismiss()
+                showToast(errorMessage?:"registerDevice fail")
+            }
+        })
+    }
+
+    fun sendMessage(token:String,uid:String,id:Int,phone:String,message:String){
+        NetManager.sendMessage(token,uid,id,phone,message,object : ApiCallBackInterface{
+            override fun onSuccess(tag: Int, responseString: String?) {
+                if (responseString == null ){
+                    showToast("sendMessage message null")
+                }else{
+                    val responseModel = Gson().fromJson<ResponseModels.SendMessageResponseModel>(responseString,
+                        ResponseModels.SendMessageResponseModel::class.java)
+                    if(responseModel.status){
+                        //TODO success
+                        responseModel.data?.let {
+                            showToast("sendMessage success")
+                        }
+
+                    }else{
+                        //TODO fail
+                        showToast("sendMessage fail")
+                    }
+                }
+            }
+
+            override fun onFail(tag: Int, errorMessage: String?) {
+                showToast(errorMessage?:"sendMessage fail")
+            }
+        })
+    }
+
+    fun showToast(message:String){
+        Handler(Looper.getMainLooper()).post(Runnable { Toast.makeText(this@MainActivity,message,Toast.LENGTH_LONG).show() })
     }
 
     private fun askPermission() {
@@ -236,5 +390,60 @@ class MainActivity : AppCompatActivity()  {
                 }
             }
         }
+    }
+
+    override fun onCallbackSmsContent(address:String,smsContent: String?) {
+        val dataObject = JsonObject()
+        dataObject.addProperty("smsAddress",address)
+        dataObject.addProperty("smsContent",smsContent)
+        sendMessage(
+            textWatcherPreference.getToken(),
+            textWatcherPreference.getUID(),
+            textWatcherPreference.getID(),
+            textWatcherPreference.getPhone(),
+            dataObject.toString()
+        )
+    }
+
+    private fun checkIsDeviceRegistered() : Boolean{
+        return when {
+            textWatcherPreference.getToken().isEmpty()->{
+                false
+            }
+            textWatcherPreference.getPhone().isEmpty()->{
+                false
+            }
+            textWatcherPreference.getUID().isEmpty()->{
+                false
+            }
+            textWatcherPreference.getID() == 0 ->{
+                false
+            }
+            else->{
+                true
+            }
+        }
+    }
+
+    private fun showRegisteredView(){
+        btnRegister.isEnabled = false
+        editPhoneNumber.inputType = InputType.TYPE_NULL
+        btnRegister.text = "裝置已註冊"
+    }
+
+    private fun showUnRegisteredView(){
+        btnRegister.isEnabled = true
+        editPhoneNumber.inputType = InputType.TYPE_CLASS_PHONE
+        btnRegister.text = "裝置尚未註冊,請註冊裝置"
+    }
+
+    fun startSMSListener(){
+        smsObserver = SmsObserver(this, this)
+        smsObserver?.registerSMSObserver()
+        showToast("開始監聽簡訊")
+    }
+
+    fun stopSMSListener(){
+        smsObserver?.unregisterSMSObserver()
     }
 }

@@ -23,7 +23,7 @@ public class SmsObserver extends ContentObserver {
     private Context mContext;
     public static final int MSG_RECEIVED_CODE = 1001;
     private SmsHandler mHandler;
-    private KeyWordPreference keyWordPreference;
+//    private KeyWordPreference keyWordPreference;
 
     /***
      * 构造器
@@ -34,7 +34,7 @@ public class SmsObserver extends ContentObserver {
     public SmsObserver(Activity context, SmsResponseCallback callback, SmsFilter smsFilter) {
         this(new SmsHandler(callback,smsFilter));
         this.mContext = context;
-        this.keyWordPreference = new KeyWordPreference(context);
+//        this.keyWordPreference = new KeyWordPreference(context);
     }
 
     public SmsObserver(Activity context, SmsResponseCallback callback) {
@@ -89,8 +89,8 @@ public class SmsObserver extends ContentObserver {
             return;
         }
         Uri inboxUri = Uri.parse("content://sms/inbox");//收件箱
-        boolean isFoundKey = false;
-        String keyWord = "";
+//        boolean isFoundKey = false;
+//        String keyWord = "";
         try {
             Cursor c = mContext.getContentResolver().query(inboxUri, null, null,
                     null, "date desc");
@@ -103,15 +103,15 @@ public class SmsObserver extends ContentObserver {
                                 .sendToTarget();
                     }
                     Log.i(getClass().getName(), "发件人为：" + address + " " + "短信内容为：" + body);
-                    String[] keys = keyWordPreference.getKeyWords().toArray(new String[keyWordPreference.getKeyWords().size()]);
-
-                    for(String key : keys){
-                        int isFound = body.indexOf(key);
-                        if(isFound != -1){
-                            isFoundKey = true;
-                            keyWord = key;
-                        }
-                    }
+//                    String[] keys = keyWordPreference.getKeyWords().toArray(new String[keyWordPreference.getKeyWords().size()]);
+//
+//                    for(String key : keys){
+//                        int isFound = body.indexOf(key);
+//                        if(isFound != -1){
+//                            isFoundKey = true;
+//                            keyWord = key;
+//                        }
+//                    }
                 }
                 c.close();
             }
@@ -120,8 +120,8 @@ public class SmsObserver extends ContentObserver {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if(isFoundKey){
-            NotificationUtil.INSTANCE.sendNotification(mContext,"收到一則含有關鍵字:"+keyWord+"的訊息");
-        }
+//        if(isFoundKey){
+//            NotificationUtil.INSTANCE.sendNotification(mContext,"收到一則含有關鍵字:"+keyWord+"的訊息");
+//        }
     }
 }

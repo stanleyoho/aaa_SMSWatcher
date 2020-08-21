@@ -12,9 +12,10 @@ class SMSReceiver : BroadcastReceiver() {
     override fun onReceive(p0: Context?, p1: Intent?) {
         p0?.let {
             Log.d(TAG,"onReceive")
-            val intent = Intent(it,MySMSService::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            it.startService(intent)
+//            val intent = Intent(it,MySMSService::class.java)
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//            it.startService(intent)
+
         }
     }
 }

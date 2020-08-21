@@ -27,10 +27,11 @@
             android:layout_height="wrap_content"
             android:text="@string/device_name"
             android:textSize="20sp"/>
-        <EditText
+        <TextView
             android:id="@+id/edit_device_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
             android:layout_weight="1"
             android:textSize="16sp"/>
     </LinearLayout>
@@ -54,28 +55,36 @@
             android:id="@+id/edit_phone_number"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
             android:layout_weight="1"
+            android:inputType="phone"
             android:textSize="16sp"/>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list_permission"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@+id/layout_phone"
         app:layout_constraintStart_toStartOf="@+id/layout_phone"
-        app:layout_constraintEnd_toEndOf="@+id/layout_phone"
-        app:layout_constraintBottom_toTopOf="@id/btn_register"/>
+        app:layout_constraintEnd_toEndOf="@+id/layout_phone" />
 
-    <Button
-        android:id="@+id/btn_register"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@+id/list_permission"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/list_permission"
         app:layout_constraintEnd_toEndOf="@+id/list_permission"
-        android:layout_marginBottom="15dp"
-        android:visibility="gone"
-        android:text="Register"/>
+        android:layout_marginBottom="10dp"
+        android:orientation="vertical"
+        android:gravity="center">
 
+        <Button
+            android:id="@+id/btn_register"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:text="Register_Device"/>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

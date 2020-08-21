@@ -1,7 +1,10 @@
 package com.playplus.app.smswatcher
 
+import android.provider.Settings
 import android.util.Log
 import com.blankj.utilcode.util.DeviceUtils
+import java.lang.Exception
+import java.util.*
 
 object MyDeviceUtils {
 
@@ -15,6 +18,16 @@ object MyDeviceUtils {
 
     fun getUniqueDeviceId():String{
         return DeviceUtils.getUniqueDeviceId()
+    }
+
+    fun getUUID() : String{
+        var uuid = ""
+        try{
+            uuid = Settings.Secure.getString(SMSWatcherApplication.instance.contentResolver, Settings.Secure.ANDROID_ID)
+        }catch (e:Exception){
+            uuid = UUID.randomUUID().toString()
+        }
+        return uuid
     }
 
     fun logAll(){
