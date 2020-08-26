@@ -25,12 +25,12 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.playplus.app.smswatcher.net.NetManager
 import com.playplus.app.smswatcher.net.ResponseModels
-import com.playplus.app.smswatcher.smsObserverLib.SmsObserver
+import com.playplus.app.smswatcher.service.MySMSService
 import com.playplus.app.smswatcher.smsObserverLib.SmsResponseCallback
-import com.playplus.app.smswatcher.smsObserverLib.VerificationCodeSmsFilter
+import com.playplus.app.smswatcher.utils.MyDeviceUtils
+import com.playplus.app.smswatcher.utils.MyPermissionUtil
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_key.view.*
-import java.util.*
 
 class MainActivity : AppCompatActivity() ,SmsResponseCallback {
 
@@ -43,7 +43,6 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
     private var loadingDialog : LoadingDialog? = null
     private val permissionRequestCode = 1001
     private var isPermissionCheckPass = false
-    private var smsObserver: SmsObserver? = null
     private var isDeviceRegistered = false
     val permissionData = MyPermissionUtil.getPermissionArray(
         android.Manifest.permission.RECEIVE_SMS,
@@ -79,8 +78,10 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
 
         //init
         textDevice.text = "${MyDeviceUtils.getManufacturer()}_${MyDeviceUtils.getModel()}"
-//        editPhoneNumber.setText("0911571591")
         listPermissions.layoutManager = LinearLayoutManager(this@MainActivity)
+
+        val service = Intent(this, MySMSService::class.java)
+        this.startService(service)
     }
 
     override fun onResume() {
@@ -94,9 +95,9 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
         }
 
         if(isPermissionCheckPass && isDeviceRegistered){
-            startSMSListener()
+            startSMSListenerService()
         }else{
-            stopSMSListener()
+            stopSMSListenerService()
         }
 
         if(checkIsDeviceRegistered()){
@@ -107,7 +108,6 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
     }
 
     override fun onDestroy() {
-        stopSMSListener()
         super.onDestroy()
     }
 
@@ -179,7 +179,7 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
                             loadingDialog?.dismiss()
                             showToast("裝置註冊成功")
                             showRegisteredView()
-                            startSMSListener()
+//                            startSMSListener()
                         }
                     }else{
                         loadingDialog?.dismiss()
@@ -428,6 +428,7 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
     private fun showRegisteredView(){
         btnRegister.isEnabled = false
         editPhoneNumber.inputType = InputType.TYPE_NULL
+        editPhoneNumber.setText(textWatcherPreference.getPhone())
         btnRegister.text = "裝置已註冊"
     }
 
@@ -437,13 +438,11 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
         btnRegister.text = "裝置尚未註冊,請註冊裝置"
     }
 
-    fun startSMSListener(){
-        smsObserver = SmsObserver(this, this)
-        smsObserver?.registerSMSObserver()
-        showToast("開始監聽簡訊")
+    fun startSMSListenerService(){
+        startService(Intent(this,MySMSService::class.java))
     }
 
-    fun stopSMSListener(){
-        smsObserver?.unregisterSMSObserver()
+    fun stopSMSListenerService(){
+        stopService(Intent(this,MySMSService::class.java))
     }
 }

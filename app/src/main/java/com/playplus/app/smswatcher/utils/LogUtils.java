@@ -1,4 +1,4 @@
-package com.playplus.app.smswatcher;
+package com.playplus.app.smswatcher.utils;
 
 /**
  * Created by andy.huang on 9/8/2016.
@@ -7,6 +7,8 @@ package com.playplus.app.smswatcher;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.playplus.app.smswatcher.BuildConfig;
 
 /**
  * LogUtils工具說明:

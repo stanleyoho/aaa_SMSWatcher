@@ -23,31 +23,34 @@
         android:supportsRtl="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/AppTheme">
-        <activity android:name="com.playplus.app.smswatcher.MainActivity">
+        <activity android:name="com.playplus.app.smswatcher.MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".MySMSService"
-            android:label="MySMSService"
+        <receiver
+            android:name=".receiver.WakeReceiver"
             android:enabled="true"
-            android:exported="true"
-            android:process=":remote"
-            android:permission="android.permission.BIND_JOB_SERVICE">
-        </service>
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.wake.gray" />
+            </intent-filter>
+        </receiver>
 
-        <receiver android:name=".SMSReceiver"
-            android:permission="android.permission.BROADCAST_SMS">
+        <service
+            android:name=".service.MySMSService"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":bg" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
             </intent-filter>
-        </receiver>
+        </service>
 
     </application>
 </manifest>

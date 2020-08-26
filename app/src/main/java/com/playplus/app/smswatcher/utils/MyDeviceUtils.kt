@@ -1,8 +1,9 @@
-package com.playplus.app.smswatcher
+package com.playplus.app.smswatcher.utils
 
 import android.provider.Settings
 import android.util.Log
 import com.blankj.utilcode.util.DeviceUtils
+import com.playplus.app.smswatcher.SMSWatcherApplication
 import java.lang.Exception
 import java.util.*
 

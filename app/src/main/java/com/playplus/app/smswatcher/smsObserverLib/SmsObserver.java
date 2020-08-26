@@ -7,9 +7,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
-import com.playplus.app.smswatcher.KeyWordPreference;
-import com.playplus.app.smswatcher.NotificationUtil;
-
 /***
  * 短信接收观察者
  *
@@ -37,7 +34,7 @@ public class SmsObserver extends ContentObserver {
 //        this.keyWordPreference = new KeyWordPreference(context);
     }
 
-    public SmsObserver(Activity context, SmsResponseCallback callback) {
+    public SmsObserver(Context context, SmsResponseCallback callback) {
         this(new SmsHandler(callback));
         this.mContext = context;
     }

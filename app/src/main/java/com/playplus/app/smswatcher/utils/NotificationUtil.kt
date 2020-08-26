@@ -1,4 +1,4 @@
-package com.playplus.app.smswatcher
+package com.playplus.app.smswatcher.utils
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -6,8 +6,7 @@ import android.content.Context
 import android.content.Context.NOTIFICATION_SERVICE
 import android.os.Build
 import androidx.core.app.NotificationCompat
-
-
+import com.playplus.app.smswatcher.R
 
 
 object NotificationUtil {

@@ -1,4 +1,4 @@
-package com.playplus.app.smswatcher
+package com.playplus.app.smswatcher.utils
 
 import android.app.Activity
 import android.content.Context

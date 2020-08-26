@@ -1,7 +1,6 @@
 package com.playplus.app.smswatcher.net
 
 import com.playplus.app.smswatcher.ApiCallBackInterface
-import com.playplus.app.smswatcher.MyDeviceUtils
 import okhttp3.FormBody
 import okhttp3.Request
 import okhttp3.RequestBody
