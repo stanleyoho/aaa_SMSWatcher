@@ -17,10 +17,10 @@ object NetManager {
         OkHttpUtils.getInstance().post(1001,UrlManager.API_GET_TOKEN,request,apiCallback)
     }
 
-    fun sendMessage(token:String,uid:String,id:Int,phone:String,message:String,apiCallback:ApiCallBackInterface){
+    fun sendMessage(token:String,uid:String,id:Int,address:String,message:String,apiCallback:ApiCallBackInterface){
         val requestBody = FormBody.Builder()
             .add("sms_record[content]",message)
-            .add("sms_record[phone]",phone)
+            .add("sms_record[phone]",address)
             .build()
 
         val request = Request.Builder()

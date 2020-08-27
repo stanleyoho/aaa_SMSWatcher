@@ -109,15 +109,13 @@ class MySMSService: Service() ,SmsResponseCallback {
 
     private fun sendMessage(address: String, smsContent: String){
         devicePreference?.let {
-            val dataObject = JsonObject()
-            dataObject.addProperty("smsAddress", address)
-            dataObject.addProperty("smsContent", smsContent)
             NetManager.sendMessage(
                 it.getToken(),
                 it.getUID(),
                 it.getID(),
-                it.getPhone(),
-                dataObject.toString(), object : ApiCallBackInterface {
+                address,
+                smsContent,
+                object : ApiCallBackInterface {
                     override fun onSuccess(tag: Int, responseString: String?) {
                         LogUtils.i(TAG, "send message success")
                     }
