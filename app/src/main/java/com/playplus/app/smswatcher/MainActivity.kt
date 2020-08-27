@@ -175,7 +175,11 @@ class MainActivity : AppCompatActivity(){
                             loadingDialog?.dismiss()
                             showToast("裝置註冊成功")
                             showRegisteredView()
-//                            startSMSListener()
+                            if(isPermissionCheckPass && isDeviceRegistered){
+                                startSMSListenerService()
+                            }else{
+                                stopSMSListenerService()
+                            }
                         }
                     }else{
                         loadingDialog?.dismiss()
@@ -187,33 +191,6 @@ class MainActivity : AppCompatActivity(){
             override fun onFail(tag: Int, errorMessage: String?) {
                 loadingDialog?.dismiss()
                 showToast(errorMessage?:"registerDevice fail")
-            }
-        })
-    }
-
-    fun sendMessage(token:String,uid:String,id:Int,phone:String,message:String){
-        NetManager.sendMessage(token,uid,id,phone,message,object : ApiCallBackInterface{
-            override fun onSuccess(tag: Int, responseString: String?) {
-                if (responseString == null ){
-                    showToast("sendMessage message null")
-                }else{
-                    val responseModel = Gson().fromJson<ResponseModels.SendMessageResponseModel>(responseString,
-                        ResponseModels.SendMessageResponseModel::class.java)
-                    if(responseModel.status){
-                        //TODO success
-                        responseModel.data?.let {
-                            showToast("sendMessage success")
-                        }
-
-                    }else{
-                        //TODO fail
-                        showToast("sendMessage fail")
-                    }
-                }
-            }
-
-            override fun onFail(tag: Int, errorMessage: String?) {
-                showToast(errorMessage?:"sendMessage fail")
             }
         })
     }
