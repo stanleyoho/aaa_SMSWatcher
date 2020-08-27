@@ -26,15 +26,14 @@ import com.google.gson.JsonObject
 import com.playplus.app.smswatcher.net.NetManager
 import com.playplus.app.smswatcher.net.ResponseModels
 import com.playplus.app.smswatcher.service.MySMSService
-import com.playplus.app.smswatcher.smsObserverLib.SmsResponseCallback
 import com.playplus.app.smswatcher.utils.MyDeviceUtils
 import com.playplus.app.smswatcher.utils.MyPermissionUtil
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_key.view.*
 
-class MainActivity : AppCompatActivity() ,SmsResponseCallback {
+class MainActivity : AppCompatActivity(){
 
-    private lateinit var textWatcherPreference : KeyWordPreference
+    private lateinit var textWatcherPreference : DevicePreference
     private lateinit var layoutParent : ConstraintLayout
     private lateinit var textDevice : TextView
     private lateinit var editPhoneNumber : EditText
@@ -55,7 +54,7 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        textWatcherPreference = KeyWordPreference(this@MainActivity)
+        textWatcherPreference = DevicePreference(this@MainActivity)
         loadingDialog = LoadingDialog(this@MainActivity)
         layoutParent = layout_parent
         textDevice = edit_device_name
@@ -79,9 +78,6 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
         //init
         textDevice.text = "${MyDeviceUtils.getManufacturer()}_${MyDeviceUtils.getModel()}"
         listPermissions.layoutManager = LinearLayoutManager(this@MainActivity)
-
-        val service = Intent(this, MySMSService::class.java)
-        this.startService(service)
     }
 
     override fun onResume() {
@@ -94,16 +90,16 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
             showRegister(false)
         }
 
-        if(isPermissionCheckPass && isDeviceRegistered){
-            startSMSListenerService()
-        }else{
-            stopSMSListenerService()
-        }
-
         if(checkIsDeviceRegistered()){
             showRegisteredView()
         }else{
             showUnRegisteredView()
+        }
+
+        if(isPermissionCheckPass && isDeviceRegistered){
+            startSMSListenerService()
+        }else{
+            stopSMSListenerService()
         }
     }
 
@@ -390,19 +386,6 @@ class MainActivity : AppCompatActivity() ,SmsResponseCallback {
                 }
             }
         }
-    }
-
-    override fun onCallbackSmsContent(address:String,smsContent: String?) {
-        val dataObject = JsonObject()
-        dataObject.addProperty("smsAddress",address)
-        dataObject.addProperty("smsContent",smsContent)
-        sendMessage(
-            textWatcherPreference.getToken(),
-            textWatcherPreference.getUID(),
-            textWatcherPreference.getID(),
-            textWatcherPreference.getPhone(),
-            dataObject.toString()
-        )
     }
 
     private fun checkIsDeviceRegistered() : Boolean{

@@ -10,9 +10,12 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!--讀取手機號碼權限-->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <!--開機玩畢權限-->
+    <!--開機完畢權限-->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+    <!--android 9.0上使用前台服务，需要添加权限-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
 
     <application
         android:name="com.playplus.app.smswatcher.SMSWatcherApplication"
@@ -32,11 +35,11 @@
         </activity>
 
         <receiver
-            android:name=".receiver.WakeReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.wake.gray" />
+            android:name=".receiver.SMSReceiver"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.REBOOT"/>
             </intent-filter>
         </receiver>
 
@@ -44,12 +47,8 @@
             android:name=".service.MySMSService"
             android:enabled="true"
             android:exported="false"
-            android:process=":bg" >
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.USER_PRESENT" />
-                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
-            </intent-filter>
+            android:process=":bg"
+            android:permission="android.permission.BIND_JOB_SERVICE">
         </service>
 
     </application>

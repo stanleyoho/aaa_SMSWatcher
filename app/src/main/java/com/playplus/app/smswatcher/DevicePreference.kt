@@ -3,7 +3,7 @@ package com.playplus.app.smswatcher
 import android.content.Context
 import android.content.SharedPreferences
 
-class KeyWordPreference(context: Context) {
+class DevicePreference(context: Context) {
     private val KEY = "KeyMap"
     private val PREFERENCE_KEY = "SMS_WATCHER"
     private val PREFERENCE_KEY_TOKEN = "TOKEN"
