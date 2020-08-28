@@ -95,6 +95,9 @@ public class SmsObserver extends ContentObserver {
                 if (c.moveToFirst()) {
                     String address = c.getString(c.getColumnIndex("address"));
                     String body = c.getString(c.getColumnIndex("body"));
+                    Log.i(getClass().getName(),"person : "+c.getString(c.getColumnIndex("person")));
+                    Log.i(getClass().getName(),"date : "+c.getString(c.getColumnIndex("date")));
+                    Log.i(getClass().getName(),"type : "+c.getString(c.getColumnIndex("type")));
                     if (mHandler != null) {
                         mHandler.obtainMessage(MSG_RECEIVED_CODE, new String[]{address, body})
                                 .sendToTarget();

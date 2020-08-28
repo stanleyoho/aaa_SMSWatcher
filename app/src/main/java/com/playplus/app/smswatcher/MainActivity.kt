@@ -22,17 +22,18 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
-import com.google.gson.JsonObject
 import com.playplus.app.smswatcher.net.NetManager
 import com.playplus.app.smswatcher.net.ResponseModels
 import com.playplus.app.smswatcher.service.MySMSService
 import com.playplus.app.smswatcher.utils.MyDeviceUtils
 import com.playplus.app.smswatcher.utils.MyPermissionUtil
+import com.playplus.app.smswatcher.utils.MyPhoneUtils
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_key.view.*
 
 class MainActivity : AppCompatActivity(){
 
+    private val TAG = javaClass.name
     private lateinit var textWatcherPreference : DevicePreference
     private lateinit var layoutParent : ConstraintLayout
     private lateinit var textDevice : TextView
@@ -62,11 +63,11 @@ class MainActivity : AppCompatActivity(){
         listPermissions = list_permission
         btnRegister = btn_register
 
-        btnRegister.setOnClickListener(object : View.OnClickListener{
+        btnRegister.setOnClickListener(object : View.OnClickListener {
             override fun onClick(p0: View?) {
-                if(checkIsInputCorrect()) {
+                if (checkIsInputCorrect()) {
                     getToken()
-                }else{
+                } else {
                     showToast("請輸入電話號碼")
                 }
             }
@@ -78,6 +79,8 @@ class MainActivity : AppCompatActivity(){
         //init
         textDevice.text = "${MyDeviceUtils.getManufacturer()}_${MyDeviceUtils.getModel()}"
         listPermissions.layoutManager = LinearLayoutManager(this@MainActivity)
+
+        MyPhoneUtils.logPhoneInfo(this)
     }
 
     override fun onResume() {
@@ -125,21 +128,25 @@ class MainActivity : AppCompatActivity(){
 
     fun getToken(){
         loadingDialog?.show()
-        NetManager.getToken(object : ApiCallBackInterface{
+        NetManager.getToken(object : ApiCallBackInterface {
             override fun onSuccess(tag: Int, responseString: String?) {
-                if (responseString == null ){
+                if (responseString == null) {
                     loadingDialog?.dismiss()
                     showToast("getToken message null")
-                }else{
-                    val responseModel = Gson().fromJson<ResponseModels.GetTokenResponseModel>(responseString,ResponseModels.GetTokenResponseModel::class.java)
-                    if(responseModel.status){
+                } else {
+                    val responseModel = Gson().fromJson<ResponseModels.GetTokenResponseModel>(
+                        responseString,
+                        ResponseModels.GetTokenResponseModel::class.java
+                    )
+                    if (responseModel.status) {
                         textWatcherPreference.setToken(responseModel.token)
                         registerDevice(
                             textWatcherPreference.getToken(),
                             textDevice.text.toString(),
                             MyDeviceUtils.getUUID(),
-                            editPhoneNumber.text.toString())
-                    }else{
+                            editPhoneNumber.text.toString()
+                        )
+                    } else {
                         loadingDialog?.dismiss()
                         showToast("set token fail")
                     }
@@ -148,21 +155,24 @@ class MainActivity : AppCompatActivity(){
 
             override fun onFail(tag: Int, errorMessage: String?) {
                 loadingDialog?.dismiss()
-                showToast(errorMessage?:"getToken fail")
+                showToast(errorMessage ?: "getToken fail")
             }
         })
     }
 
-    fun registerDevice(token:String,device:String,uid:String,phone:String){
-        NetManager.registerDevice(token,device,uid,phone,object : ApiCallBackInterface{
+    fun registerDevice(token: String, device: String, uid: String, phone: String){
+        NetManager.registerDevice(token, device, uid, phone, object : ApiCallBackInterface {
             override fun onSuccess(tag: Int, responseString: String?) {
-                if (responseString == null ){
+                if (responseString == null) {
                     loadingDialog?.dismiss()
                     showToast("registerDevice message null")
-                }else{
-                    val responseModel = Gson().fromJson<ResponseModels.GetDeviceRegisterResponseModel>(responseString,
-                        ResponseModels.GetDeviceRegisterResponseModel::class.java)
-                    if(responseModel.status){
+                } else {
+                    val responseModel =
+                        Gson().fromJson<ResponseModels.GetDeviceRegisterResponseModel>(
+                            responseString,
+                            ResponseModels.GetDeviceRegisterResponseModel::class.java
+                        )
+                    if (responseModel.status) {
                         responseModel.data?.let {
                             textWatcherPreference.setID(it.id)
                             textWatcherPreference.setUID(it.uid)
@@ -171,13 +181,13 @@ class MainActivity : AppCompatActivity(){
                             loadingDialog?.dismiss()
                             showToast("裝置註冊成功")
                             showRegisteredView()
-                            if(isPermissionCheckPass && isDeviceRegistered){
+                            if (isPermissionCheckPass && isDeviceRegistered) {
                                 startSMSListenerService()
-                            }else{
+                            } else {
                                 stopSMSListenerService()
                             }
                         }
-                    }else{
+                    } else {
                         loadingDialog?.dismiss()
                         showToast("registerDevice fail")
                     }
@@ -186,23 +196,32 @@ class MainActivity : AppCompatActivity(){
 
             override fun onFail(tag: Int, errorMessage: String?) {
                 loadingDialog?.dismiss()
-                showToast(errorMessage?:"registerDevice fail")
+                showToast(errorMessage ?: "registerDevice fail")
             }
         })
     }
 
-    fun showToast(message:String){
-        Handler(Looper.getMainLooper()).post(Runnable { Toast.makeText(this@MainActivity,message,Toast.LENGTH_LONG).show() })
+    fun showToast(message: String){
+        Handler(Looper.getMainLooper()).post(Runnable {
+            Toast.makeText(
+                this@MainActivity,
+                message,
+                Toast.LENGTH_LONG
+            ).show()
+        })
     }
 
     private fun askPermission() {
 
-        val deniedArray = MyPermissionUtil.getPermissionDeniedArray(this@MainActivity,permissionData)
+        val deniedArray = MyPermissionUtil.getPermissionDeniedArray(
+            this@MainActivity,
+            permissionData
+        )
 
         if(deniedArray.isNotEmpty()){
             //get permissions
-            MyPermissionUtil.askPermission(this@MainActivity,deniedArray,permissionRequestCode)
-            Log.d("askPermission","ask")
+            MyPermissionUtil.askPermission(this@MainActivity, deniedArray, permissionRequestCode)
+            Log.d("askPermission", "ask")
         }else{
             nextAction()
         }
@@ -223,7 +242,7 @@ class MainActivity : AppCompatActivity(){
         showRegister(true)
     }
 
-    fun showRegister(isShow:Boolean){
+    fun showRegister(isShow: Boolean){
         if (isShow){
             btnRegister.visibility = View.VISIBLE
         }else{
@@ -235,13 +254,17 @@ class MainActivity : AppCompatActivity(){
     private fun updateRecycler(){
         val adapter = listPermissions.adapter as KeyWordAdapter?
         if(adapter == null){
-            listPermissions.adapter = KeyWordAdapter(this@MainActivity,callback)
+            listPermissions.adapter = KeyWordAdapter(this@MainActivity, callback)
         }else{
             adapter.updateGrantPermission()
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         if(requestCode == permissionRequestCode){
             var isNeedShowAgain = false
             for(element in permissions){
@@ -272,14 +295,20 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-    class KeyWordAdapter(private val context: Context,val callback : Callback):RecyclerView.Adapter<RecyclerView.ViewHolder>(){
+    class KeyWordAdapter(private val context: Context, val callback: Callback):RecyclerView.Adapter<RecyclerView.ViewHolder>(){
 
-        private val permissionsArray = arrayOf("SMS","PHONE")
+        private val permissionsArray = arrayOf("SMS", "PHONE")
         var phoneCheck = false
         var smsCheck = false
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            return PermissionVH(context,LayoutInflater.from(context).inflate(R.layout.item_key,parent,false))
+            return PermissionVH(
+                context, LayoutInflater.from(context).inflate(
+                    R.layout.item_key,
+                    parent,
+                    false
+                )
+            )
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -292,8 +321,12 @@ class MainActivity : AppCompatActivity(){
                     holder.setFailStyle()
                 }
                 when(position){
-                    0->{ holder.textPermission.text = "取得簡訊權限" }
-                    1->{ holder.textPermission.text = "取得手機號碼權限" }
+                    0 -> {
+                        holder.textPermission.text = "取得簡訊權限"
+                    }
+                    1 -> {
+                        holder.textPermission.text = "取得手機號碼權限"
+                    }
                 }
             }
         }
@@ -306,16 +339,18 @@ class MainActivity : AppCompatActivity(){
             notifyDataSetChanged()
         }
 
-        private fun checkPermission(type:String):Boolean{
+        private fun checkPermission(type: String):Boolean{
             var result = false
             when(type){
-                "SMS"->{
-                    val permissionResult = context.checkSelfPermission(android.Manifest.permission.READ_SMS)
+                "SMS" -> {
+                    val permissionResult =
+                        context.checkSelfPermission(android.Manifest.permission.READ_SMS)
                     result = permissionResult == PackageManager.PERMISSION_GRANTED
                     smsCheck = permissionResult == PackageManager.PERMISSION_GRANTED
                 }
-                "PHONE"->{
-                    val permissionResult = context.checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE)
+                "PHONE" -> {
+                    val permissionResult =
+                        context.checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE)
                     result = permissionResult == PackageManager.PERMISSION_GRANTED
                     phoneCheck = permissionResult == PackageManager.PERMISSION_GRANTED
                 }
@@ -334,7 +369,9 @@ class MainActivity : AppCompatActivity(){
             fun onCheckFail()
         }
 
-        class PermissionVH(private val context:Context, itemView: View):RecyclerView.ViewHolder(itemView){
+        class PermissionVH(private val context: Context, itemView: View):RecyclerView.ViewHolder(
+            itemView
+        ){
             var textIcon:TextView = itemView.textIcon
             var textPermission: TextView = itemView.textPermission
             var btnSetting: Button = itemView.btn_setting
@@ -355,7 +392,7 @@ class MainActivity : AppCompatActivity(){
                     val uri: Uri = Uri.fromParts("package", context.packageName, null)
                     intent.data = uri
                     context.startActivity(intent)
-                    Log.d("123","123")
+                    Log.d("123", "123")
                 }
             }
         }
@@ -395,10 +432,10 @@ class MainActivity : AppCompatActivity(){
     }
 
     fun startSMSListenerService(){
-        startService(Intent(this,MySMSService::class.java))
+        startService(Intent(this, MySMSService::class.java))
     }
 
     fun stopSMSListenerService(){
-        stopService(Intent(this,MySMSService::class.java))
+        stopService(Intent(this, MySMSService::class.java))
     }
 }
