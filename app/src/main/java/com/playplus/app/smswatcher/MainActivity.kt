@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity(){
                 if(checkIsInputCorrect()) {
                     getToken()
                 }else{
-                    showToast("輸入錯誤")
+                    showToast("請輸入電話號碼")
                 }
             }
         })
@@ -113,11 +113,7 @@ class MainActivity : AppCompatActivity(){
             textDevice.text.isEmpty()->{
                 false
             }
-
-            !editPhoneNumber.text.startsWith("09")->{
-                false
-            }
-            editPhoneNumber.text.toString().length != 10 ->{
+            editPhoneNumber.text.toString().trim().isEmpty()->{
                 false
             }
             else->{
