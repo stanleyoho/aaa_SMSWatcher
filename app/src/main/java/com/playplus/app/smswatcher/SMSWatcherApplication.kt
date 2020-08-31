@@ -1,8 +1,6 @@
 package com.playplus.app.smswatcher
 
 import android.app.Application
-import android.content.Intent
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 class SMSWatcherApplication:Application() {
 

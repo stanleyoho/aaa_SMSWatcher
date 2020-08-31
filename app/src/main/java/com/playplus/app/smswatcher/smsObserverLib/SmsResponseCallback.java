@@ -16,5 +16,5 @@ public interface SmsResponseCallback {
 	 * @param smsContent
 	 * @see [类、类#方法、类#成员]
 	 */
-	void onCallbackSmsContent(String address,String smsContent);
+	void onCallbackSmsContent(String messageId,String address,String smsContent,String createTime);
 }

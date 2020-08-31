@@ -42,13 +42,15 @@ public class SmsHandler extends Handler {
         super.handleMessage(msg);
         if (msg.what == SmsObserver.MSG_RECEIVED_CODE) {
             String[] smsInfos = (String[]) msg.obj;
-            if (smsInfos != null && smsInfos.length == 2 && mCallback != null) {
+            if (smsInfos != null && smsInfos.length == 4 && mCallback != null) {
                 if (smsFilter == null) {
                     smsFilter = new DefaultSmsFilter();
                 }
-                String address = smsInfos[0];
-                String message = smsInfos[1];
-                mCallback.onCallbackSmsContent(address,smsFilter.filter(address, message));
+                String messageId = smsInfos[0];
+                String address = smsInfos[1];
+                String message = smsInfos[2];
+                String createTime = smsInfos[3];
+                mCallback.onCallbackSmsContent(messageId,address,smsFilter.filter(address, message),createTime);
             }
         }
     }

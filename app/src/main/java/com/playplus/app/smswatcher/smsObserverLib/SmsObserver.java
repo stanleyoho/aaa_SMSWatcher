@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
+import com.playplus.app.smswatcher.utils.FormatUtils;
+
 /***
  * 短信接收观察者
  *
@@ -20,7 +22,7 @@ public class SmsObserver extends ContentObserver {
     private Context mContext;
     public static final int MSG_RECEIVED_CODE = 1001;
     private SmsHandler mHandler;
-//    private KeyWordPreference keyWordPreference;
+    private Uri mUri ;
 
     /***
      * 构造器
@@ -31,7 +33,6 @@ public class SmsObserver extends ContentObserver {
     public SmsObserver(Activity context, SmsResponseCallback callback, SmsFilter smsFilter) {
         this(new SmsHandler(callback,smsFilter));
         this.mContext = context;
-//        this.keyWordPreference = new KeyWordPreference(context);
     }
 
     public SmsObserver(Context context, SmsResponseCallback callback) {
@@ -82,36 +83,36 @@ public class SmsObserver extends ContentObserver {
     @Override
     public void onChange(boolean selfChange, Uri uri) {
         super.onChange(selfChange, uri);
-        if (uri.toString().equals("content://sms/raw")) {
+        if (uri == null) {
+            mUri = Uri.parse("content://sms/inbox");
+        } else {
+            mUri = uri;
+        }
+
+        if (mUri.toString().contains("content://sms/raw") || mUri.toString().equals("content://sms")) {
             return;
         }
-        Uri inboxUri = Uri.parse("content://sms/inbox");//收件箱
-//        boolean isFoundKey = false;
-//        String keyWord = "";
+
         try {
-            Cursor c = mContext.getContentResolver().query(inboxUri, null, null,
+            Cursor c = mContext.getContentResolver().query(mUri, null, null,
                     null, "date desc");
             if (c != null) {
                 if (c.moveToFirst()) {
                     String address = c.getString(c.getColumnIndex("address"));
                     String body = c.getString(c.getColumnIndex("body"));
-                    Log.i(getClass().getName(),"person : "+c.getString(c.getColumnIndex("person")));
-                    Log.i(getClass().getName(),"date : "+c.getString(c.getColumnIndex("date")));
-                    Log.i(getClass().getName(),"type : "+c.getString(c.getColumnIndex("type")));
+                    String messageId = c.getString(c.getColumnIndex("_id"));
+                    String messageTime = c.getString(c.getColumnIndex("date"));
+                    String targetTime = "";
+                    try{
+                     targetTime = FormatUtils.INSTANCE.parseToTargetTimeFormat(Long.parseLong(messageTime));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                     if (mHandler != null) {
-                        mHandler.obtainMessage(MSG_RECEIVED_CODE, new String[]{address, body})
+                        mHandler.obtainMessage(MSG_RECEIVED_CODE, new String[]{messageId,address, body,targetTime})
                                 .sendToTarget();
                     }
                     Log.i(getClass().getName(), "发件人为：" + address + " " + "短信内容为：" + body);
-//                    String[] keys = keyWordPreference.getKeyWords().toArray(new String[keyWordPreference.getKeyWords().size()]);
-//
-//                    for(String key : keys){
-//                        int isFound = body.indexOf(key);
-//                        if(isFound != -1){
-//                            isFoundKey = true;
-//                            keyWord = key;
-//                        }
-//                    }
                 }
                 c.close();
             }
@@ -120,8 +121,5 @@ public class SmsObserver extends ContentObserver {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        if(isFoundKey){
-//            NotificationUtil.INSTANCE.sendNotification(mContext,"收到一則含有關鍵字:"+keyWord+"的訊息");
-//        }
     }
 }

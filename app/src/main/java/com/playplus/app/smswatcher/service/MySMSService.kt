@@ -10,10 +10,9 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.google.gson.JsonObject
-import com.playplus.app.smswatcher.ApiCallBackInterface
 import com.playplus.app.smswatcher.DevicePreference
-import com.playplus.app.smswatcher.net.NetManager
+import com.playplus.app.smswatcher.manager.MessageModel
+import com.playplus.app.smswatcher.manager.SendMessageManager
 import com.playplus.app.smswatcher.smsObserverLib.SmsObserver
 import com.playplus.app.smswatcher.smsObserverLib.SmsResponseCallback
 import com.playplus.app.smswatcher.utils.LogUtils
@@ -32,6 +31,7 @@ class MySMSService: Service() ,SmsResponseCallback {
         devicePreference = DevicePreference(this)
         if(checkDeviceIsRegistered() && !isSMSListening){
             initSMSObserve()
+            SendMessageManager.initMessage(this)
             startSMSListener()
             startForegroundNotification()
         }
@@ -41,6 +41,7 @@ class MySMSService: Service() ,SmsResponseCallback {
         Log.i(TAG, "onStartCommand")
         if(checkDeviceIsRegistered() && !isSMSListening){
             initSMSObserve()
+            SendMessageManager.initMessage(this)
             startSMSListener()
             startForegroundNotification()
         }
@@ -58,9 +59,9 @@ class MySMSService: Service() ,SmsResponseCallback {
         super.onDestroy()
     }
 
-    override fun onCallbackSmsContent(address: String, smsContent: String) {
+    override fun onCallbackSmsContent(messageId:String,address: String, smsContent: String,createTime:String) {
         Log.i(TAG, "service receive message, address:$address,message:$smsContent")
-        sendMessage(address, smsContent)
+        SendMessageManager.addMessage(MessageModel(messageId,address,smsContent,createTime,false))
     }
 
     /**
@@ -105,26 +106,6 @@ class MySMSService: Service() ,SmsResponseCallback {
             LogUtils.i(TAG, "裝置尚未註冊")
         }
         return result
-    }
-
-    private fun sendMessage(address: String, smsContent: String){
-        devicePreference?.let {
-            NetManager.sendMessage(
-                it.getToken(),
-                it.getUID(),
-                it.getID(),
-                address,
-                smsContent,
-                object : ApiCallBackInterface {
-                    override fun onSuccess(tag: Int, responseString: String?) {
-                        LogUtils.i(TAG, "send message success")
-                    }
-
-                    override fun onFail(tag: Int, errorMessage: String?) {
-                        LogUtils.i(TAG, "send message fail")
-                    }
-                })
-        }
     }
 
     private fun startForegroundNotification(){
