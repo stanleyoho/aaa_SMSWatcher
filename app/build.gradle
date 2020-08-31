@@ -17,8 +17,8 @@ android {
         applicationId "com.playplus.app.smswatcher"
         minSdkVersion 23
         targetSdkVersion 29
-        versionCode 7
-        versionName "1.1.6"
+        versionCode 8
+        versionName "1.1.7"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
