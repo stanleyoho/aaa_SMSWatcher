@@ -44,6 +44,7 @@ public class OkHttpUtils {
         builder.connectTimeout(TIME_OUT_SEC, TimeUnit.SECONDS);
         builder.readTimeout(TIME_OUT_SEC, TimeUnit.SECONDS);
         builder.writeTimeout(TIME_OUT_SEC, TimeUnit.SECONDS);
+        builder.retryOnConnectionFailure(false);
         builder.sslSocketFactory(MySSLSocketClient.INSTANCE.getSslSocketFactory());
         builder.hostnameVerifier(MySSLSocketClient.INSTANCE.getHostnameVerifier());
         return builder.build();

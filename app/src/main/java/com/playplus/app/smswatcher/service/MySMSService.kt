@@ -60,7 +60,6 @@ class MySMSService: Service() ,SmsResponseCallback {
     }
 
     override fun onCallbackSmsContent(messageId:String,address: String, smsContent: String,createTime:String) {
-        Log.i(TAG, "service receive message, address:$address,message:$smsContent")
         SendMessageManager.addMessage(MessageModel(messageId,address,smsContent,createTime,false))
     }
 

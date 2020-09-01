@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.playplus.app.smswatcher.utils.FormatUtils;
+import com.playplus.app.smswatcher.utils.LogUtils;
 
 /***
  * 短信接收观察者
@@ -23,6 +24,7 @@ public class SmsObserver extends ContentObserver {
     public static final int MSG_RECEIVED_CODE = 1001;
     private SmsHandler mHandler;
     private Uri mUri ;
+    private String TAG = getClass().getName();
 
     /***
      * 构造器
@@ -84,20 +86,29 @@ public class SmsObserver extends ContentObserver {
     public void onChange(boolean selfChange, Uri uri) {
         super.onChange(selfChange, uri);
         if (uri == null) {
+            LogUtils.i(TAG,"onChange 沒有uri");
             mUri = Uri.parse("content://sms/inbox");
         } else {
+            LogUtils.i(TAG,"onChange 有uri");
             mUri = uri;
         }
 
         if (mUri.toString().contains("content://sms/raw") || mUri.toString().equals("content://sms")) {
+            LogUtils.i(TAG,"onChange uri:"+mUri.toString()+"不符合條件");
             return;
         }
-
+        LogUtils.i(TAG,"onChange uri:"+mUri.toString()+"符合條件");
         try {
             Cursor c = mContext.getContentResolver().query(mUri, null, null,
                     null, "date desc");
             if (c != null) {
                 if (c.moveToFirst()) {
+                    String type = c.getString(c.getColumnIndex("type"));
+                    if(!type.equals("1")) {
+                        LogUtils.i(TAG,"onChange message type 不正確,Type:"+type);
+                        return;
+                    }
+
                     String address = c.getString(c.getColumnIndex("address"));
                     String body = c.getString(c.getColumnIndex("body"));
                     String messageId = c.getString(c.getColumnIndex("_id"));
@@ -112,7 +123,6 @@ public class SmsObserver extends ContentObserver {
                         mHandler.obtainMessage(MSG_RECEIVED_CODE, new String[]{messageId,address, body,targetTime})
                                 .sendToTarget();
                     }
-                    Log.i(getClass().getName(), "发件人为：" + address + " " + "短信内容为：" + body);
                 }
                 c.close();
             }

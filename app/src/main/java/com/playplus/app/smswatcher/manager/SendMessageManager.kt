@@ -20,11 +20,21 @@ object SendMessageManager {
 
     fun addMessage(messageModel: MessageModel){
         if(this.messagesMap.containsKey(messageModel.messageId)){
-            LogUtils.d(TAG,"此訊息已存在")
+            LogUtils.i(TAG,"此訊息已存在")
             return
         }
         messagesMap[messageModel.messageId] = messageModel
-        LogUtils.d(TAG,"new message : $messageModel")
+        //test model 測試用
+//        for(i in messageModel.messageId.toInt()+10 .. messageModel.messageId.toInt()+12){
+//            messagesMap[i.toString()] = MessageModel(
+//                i.toString(),
+//                messageModel.sendAddress+i,
+//                messageModel.messageContent+i,
+//                messageModel.receiveAt+i,
+//                false
+//            )
+//        }
+        LogUtils.i(TAG,"收到一封簡訊 :\n$messageModel")
 
         sendMessage()
     }
@@ -44,6 +54,7 @@ object SendMessageManager {
                 }
             }
         }
+        LogUtils.i(TAG,"簡訊是否都已發出:$result")
         return result
     }
 
@@ -55,6 +66,7 @@ object SendMessageManager {
                 if (!it.isSend){
                     if(messageModel == null){
                         messageModel = it
+                        LogUtils.i(TAG,"此未發出簡訊ID:${it.messageId}")
                     }
                 }
             }
@@ -68,10 +80,10 @@ object SendMessageManager {
     }
 
     private val sendMessageRunnable = Runnable {
-        LogUtils.d(TAG,"isAllMessageSend : ${isAllMessageSend()}")
         if (!isAllMessageSend()){
             val message = getFirstUnSendMessage()
-            LogUtils.d(TAG,"getFirstUnSendMessage : $message")
+            LogUtils.i(TAG,"第一封未發出簡訊 : \n$message")
+            LogUtils.i(TAG,"發出record api")
             message?.let {
                 isSending = true
                 NetManager.sendMessage(
@@ -81,6 +93,7 @@ object SendMessageManager {
                     it.sendAddress,
                     it.messageContent,
                     it.receiveAt,
+                    it.messageId,
                     object : ApiCallBackInterface{
                         override fun onSuccess(tag: Int, responseString: String?) {
                             updateSendMessage(it.messageId)
@@ -90,7 +103,7 @@ object SendMessageManager {
 
                         override fun onFail(tag: Int, errorMessage: String?) {
                             isSending = false
-                            LogUtils.d(TAG,"send message fail : $errorMessage")
+                            LogUtils.d(TAG,"message record: $errorMessage")
                         }
                     }
                 )
