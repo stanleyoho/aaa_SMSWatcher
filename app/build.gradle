@@ -10,6 +10,13 @@ android {
             keyAlias 'smswatcher_debug'
             keyPassword 'smswatcher_debug'
         }
+        release {
+            storeFile file('/Users/stanleylin/Desktop/SMSWatcher/app/smswatcher.jks')
+            storePassword 'smswatcher'
+            keyAlias 'smswatcher'
+            keyPassword 'smswatcher'
+        }
+
     }
     compileSdkVersion 29
 
