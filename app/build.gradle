@@ -5,16 +5,16 @@ apply plugin: 'kotlin-android-extensions'
 android {
     signingConfigs {
         debug {
-            storeFile file('/Users/stanleylin/Desktop/SMSWatcher/app/smswatcher_debug.jks')
-            storePassword 'smswatcher_debug'
-            keyAlias 'smswatcher_debug'
-            keyPassword 'smswatcher_debug'
+            storeFile file('/Users/stanleylin/Desktop/SMSWatcher_aaa/app/aaa_smswatcher_debug.jks')
+            storePassword 'aaa_smswatcher_debug'
+            keyAlias 'aaa_smswatcher_debug'
+            keyPassword 'aaa_smswatcher_debug'
         }
         release {
-            storeFile file('/Users/stanleylin/Desktop/SMSWatcher/app/smswatcher.jks')
-            storePassword 'smswatcher'
-            keyAlias 'smswatcher'
-            keyPassword 'smswatcher'
+            storeFile file('/Users/stanleylin/Desktop/SMSWatcher_aaa/app/aaa_smswatcher.jks')
+            storePassword 'aaa_smswatcher'
+            keyAlias 'aaa_smswatcher'
+            keyPassword 'aaa_smswatcher'
         }
 
     }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">科奇內部系統_簡訊過濾</string>
+    <string name="app_name">簡訊過濾系統</string>
     <string name="device_name">裝置名稱</string>
     <string name="phone_number">手機號碼</string>
 </resources>
