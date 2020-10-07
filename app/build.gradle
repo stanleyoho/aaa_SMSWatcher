@@ -55,7 +55,7 @@ android {
 
             variant.outputs.all {
                 //这里修改apk文件名
-                outputFileName = "SMSWatcher_${VERSION}-v${variant.versionName}.apk"
+                outputFileName = "SMSWatcher_aaa${VERSION}-v${variant.versionName}.apk"
             }
     }
 }
