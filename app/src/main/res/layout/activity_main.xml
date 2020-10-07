@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:paddingStart="10dp"
     android:paddingEnd="10dp"
-    tools:context="aaa.smsystem.cc.MainActivity">
+    tools:context="com.playplus.app.smswatcher.aaa.MainActivity">
 
     <LinearLayout
         android:id="@+id/layout_device"

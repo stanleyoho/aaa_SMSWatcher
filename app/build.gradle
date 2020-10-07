@@ -21,7 +21,7 @@ android {
     compileSdkVersion 29
 
     defaultConfig {
-        applicationId "com.playplus.app.smswatcher"
+        applicationId "com.playplus.app.smswatcher.aaa"
         minSdkVersion 23
         targetSdkVersion 29
         versionCode 9
