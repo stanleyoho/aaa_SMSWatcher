@@ -21,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.Gson
 import com.playplus.app.smswatcher.aaa.net.NetManager
 import com.playplus.app.smswatcher.aaa.net.ResponseModels
